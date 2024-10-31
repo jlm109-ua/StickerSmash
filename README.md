@@ -1,6 +1,12 @@
-# Welcome to your Expo app 👋
+# Welcome to the StickerSmash Expo app 👋
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+
+It was created with the objective to learn about this technology, so you can use my implementation of this app however you want.
+
+I will leave the default README.md content in case you need something from it.
+
+Have fun coding!
 
 ## Get started
 
