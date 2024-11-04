@@ -1,20 +1,21 @@
-import { Text, View, StyleSheet } from "react-native";
-import * as ImagePicker from "expo-image-picker";
-import { useState, useRef } from "react";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { View, StyleSheet, Platform } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { useState, useRef } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as MediaLibrary from 'expo-media-library';
-import { captureRef } from "react-native-view-shot";
 import { type ImageSource } from "expo-image";
+import { captureRef } from 'react-native-view-shot';
+import domtoimage from 'dom-to-image';
 
-import ImageViewer from "@/components/ImageViewer";
-import Button from "@/components/Button";
-import CircleButton from "@/components/CircleButton";
-import IconButton from "@/components/IconButton";
-import EmojiPicker from "@/components/EmojiPicker";
-import EmojiList from "@/components/EmojiList";
-import EmojiSticker from "@/components/EmojiSticker";
+import Button from '@/components/Button';
+import ImageViewer from '@/components/ImageViewer';
+import IconButton from '@/components/IconButton';
+import CircleButton from '@/components/CircleButton';
+import EmojiPicker from '@/components/EmojiPicker';
+import EmojiList from '@/components/EmojiList';
+import EmojiSticker from '@/components/EmojiSticker';
 
-const PlaceholderImage = require("@/assets/images/background-image.png");
+const PlaceholderImage = require('@/assets/images/background-image.png');
 
 export default function Index() {
   const [selectedImage, setSelectedImage] = useState<string | undefined>(undefined);
@@ -24,8 +25,9 @@ export default function Index() {
   const [status, requestPermission] = MediaLibrary.usePermissions();
   const imageRef = useRef<View>(null);
 
-  if (status === null)
+  if (status === null) {
     requestPermission();
+  }
 
   const pickImageAsync = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -38,40 +40,56 @@ export default function Index() {
       setSelectedImage(result.assets[0].uri);
       setShowAppOptions(true);
     } else {
-      alert("You did select any image!");
+      alert('You did not select any image.');
     }
-  }
+  };
 
   const onReset = () => {
+    setShowAppOptions(false);
     setSelectedImage(undefined);
     setPickedEmoji(undefined);
-    setShowAppOptions(false);
-  }
+  };
 
   const onAddSticker = () => {
     setIsModalVisible(true);
-  }
+  };
 
   const onModalClose = () => {
     setIsModalVisible(false);
-  }
+  };
 
   const onSaveImageAsync = async () => {
-    try {
-      const localUri = await captureRef(imageRef, {
-        height: 440,
-        quality: 1,
-      });
+    if (Platform.OS !== 'web') {
+      try {
+        const localUri = await captureRef(imageRef, {
+          height: 440,
+          quality: 1,
+        });
 
-      await MediaLibrary.saveToLibraryAsync(localUri);
-
-      if (localUri) {
-        alert("Image saved successfully!");
+        await MediaLibrary.saveToLibraryAsync(localUri);
+        if (localUri) {
+          alert('Saved!');
+        }
+      } catch (e) {
+        console.log(e);
       }
-    } catch (e) {
-      console.log(e);
+    } else {
+      try {
+        const dataUrl = await domtoimage.toJpeg(imageRef.current, {
+          quality: 0.95,
+          width: 320,
+          height: 440,
+        });
+
+        let link = document.createElement('a');
+        link.download = 'sticker-smash.jpeg';
+        link.href = dataUrl;
+        link.click();
+      } catch (e) {
+        console.log(e);
+      }
     }
-  }
+  };
 
   return (
     <GestureHandlerRootView style={styles.container}>
@@ -91,7 +109,7 @@ export default function Index() {
         </View>
       ) : (
         <View style={styles.footerContainer}>
-          <Button label="Choose a photo" theme="primary" onPress={pickImageAsync} />
+          <Button theme="primary" label="Choose a photo" onPress={pickImageAsync} />
           <Button label="Use this photo" onPress={() => setShowAppOptions(true)} />
         </View>
       )}
